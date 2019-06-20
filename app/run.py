@@ -14,6 +14,15 @@ from sqlalchemy import create_engine
 app = Flask(__name__)
 
 def tokenize(text):
+	# """ The tokenize function takes a string message and returns a list of string tokens.
+
+    # Args:
+        # text (str): The string message.
+
+    # Returns:
+        # List: string tokens
+
+    # """
     tokens = word_tokenize(text)
     lemmatizer = WordNetLemmatizer()
 
@@ -36,59 +45,73 @@ model = joblib.load("../models/classifier.pkl")
 @app.route('/')
 @app.route('/index')
 def index():
-    
+    """ The index function returns the root template.
+
+    Returns:
+        render_template():
+
+    """
     # extract data needed for visuals
     # TODO: Below is an example - modify to extract data for your own visuals
-    genre_counts = df.groupby('genre').count()['message']
+    genre_counts = df.groupby('genre')['message'].count()
     genre_names = list(genre_counts.index)
 	
-    print("genre_names, genre_counts:", genre_names, genre_counts.values.tolist())
+	# Obtain top 10 most common labels in dataset, for visualisation
+    lbl_count = df.iloc[:, 4:].mean(axis=0)
+    lbl_count = lbl_count*100
+    lbl_count = lbl_count.sort_values(ascending=False)
+    lbl_count = lbl_count[:10]
+    lbl_name = list(lbl_count.index)
+    lbl_name = [lbl.replace('_', ' ') for lbl in lbl_name if '_' in lbl]
 	
     
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
-    # graphs = 	[
-					# {
-						# 'data': [
-									# go.Bar
-									# (
-										# x=genre_names,
-										# y=genre_counts.values.tolist()
-									# )
-								# ],
+    graphs = 	[
+					{
+						'data': [
+									gob.Bar
+									(
+										x=genre_names,
+										y=genre_counts.values.tolist()
+									)
+								],
 
-						# 'layout': 	{
-										# 'title': 'Distribution of Message Genres',
-										# 'yaxis':{
-													# 'title': "Count"
-												# },
-										# 'xaxis':{
-													# 'title': "Genre"
-												# }
-									# }
-					# }
-				# ]
-    graph_two = []
-    graph_two.append(
-      gob.Bar(
-      x = genre_names,
-      y = genre_counts.values.tolist(),
-      )
-    )
+						'layout': 	{
+										'title': 'Distribution of Message Genres',
+										'yaxis':{
+													'title': "Count"
+												},
+										'xaxis':{
+													'title': "Genre"
+												}
+									}
+					},
+					{
+						'data': [
+									gob.Bar
+									(
+										x=lbl_name,
+										y=lbl_count.values.tolist()
+									)
+								],
 
-    layout_two = dict(title = 'Distribution of Message Genres',
-                xaxis = dict(title = 'Genre',),
-                yaxis = dict(title = 'Count'),
-                )
-				
-    graphs = []
-    graphs.append(dict(data=graph_two, layout=layout_two))
-	
+						'layout': 	{
+										'title': 'Most Common Labels in the Dataset',
+										'yaxis':{
+													'title': "Percentage"
+												},
+										'xaxis':{
+													'title': "Labels"
+												}
+									}
+					}
+				]	
 	
     # encode plotly graphs in JSON
     ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
     graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
-    print("graphJSON:", graphJSON)
+
     # render web page with plotly graphs
     return render_template('master.html', ids=ids, graphJSON=graphJSON)
 
@@ -96,6 +119,12 @@ def index():
 # web page that handles user query and displays model results
 @app.route('/go')
 def go():
+	# """ The go function returns the go template.
+
+    # Returns:
+        # render_template():
+
+    # """
     # save user input in query
     query = request.args.get('query', '') 
 
@@ -112,6 +141,9 @@ def go():
 
 
 def main():
+	# """ The web app main function.
+
+    # """
     app.run(host='0.0.0.0', port=3001, debug=True)
 
 

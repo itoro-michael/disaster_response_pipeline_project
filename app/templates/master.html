@@ -60,10 +60,15 @@
             <h1 class="text-center">Overview of Training Dataset</h1>
         </div>
     {% endblock %}
-
-    {% for id in ids %}
-        <div id="{{id}}"></div>
-    {% endfor %}
+	
+	<!--top two charts-->       
+	<div class="row">
+		{% for id in ids %}
+			<div class="col-6">
+				<div id="{{id}}"></div>
+			</div>
+		{% endfor %}
+	</div>
 	
 </div>
 

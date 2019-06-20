@@ -24,6 +24,19 @@ from sklearn.ensemble import AdaBoostClassifier
 
 
 def load_data(database_filepath):
+    """ This function loads the database file given as function argument and returns
+        the independent variable X, the dependent variable y, and the list of categories
+         as col_list.
+
+    Args:
+        database_filepath (str): The filepath to database file containing messages and labels.
+
+    Returns:
+        numpy.array: The messages.
+        numpy.array: The labels.
+        List: The category names
+
+    """
     # load data from database
     engine = create_engine('sqlite:///'+database_filepath)
     df = pd.read_sql("SELECT * FROM tbl_message", engine)
@@ -39,6 +52,15 @@ def load_data(database_filepath):
 
 url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 def tokenize(text):
+    """ The tokenize function takes a string message and returns a list of tokens.
+
+    Args:
+        text (str): The string message.
+
+    Returns:
+        List: of string tokens
+
+    """
      # get list of all urls using regex
     detected_urls = re.findall(url_regex, text)
     
@@ -65,17 +87,41 @@ def tokenize(text):
 
 
 def build_model():
+    """ This function defines the pipeline used for training and testing.
+
+    Returns:
+        Pipeline:
+
+    """
     # build pipeline
     pipeline = Pipeline\
                 ([
                     ('vect', CountVectorizer(tokenizer=tokenize, max_features=5000)),
                     ('tfidf', TfidfTransformer()),
-                    ('clf', MultiOutputClassifier(AdaBoostClassifier(random_state=0), n_jobs=-1))
+                    ('clf', MultiOutputClassifier(AdaBoostClassifier(random_state=0), n_jobs=1))
                 ])
-    return pipeline
+    
+    parameters =    {
+                        'clf__estimator__n_estimators': [50, 60]
+                    }
+    # Make an fbeta_score scoring object
+    scorer = make_scorer(fbeta_score, beta=1.0, average='macro')
+
+    cv = GridSearchCV(pipeline, param_grid=parameters, scoring=scorer)
+
+    return cv
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    """ This function evaluates the trained classifier.
+
+    Args:
+        model (Pipeline): Pipeline object for evaluation.
+        X_test (numpy.array): The cleaned messages.
+        Y_test (numpy.array): The labels.
+        category_names (List): The label names.
+
+    """
     # predict on test data
     y_test_pred = model.predict(X_test)
     
@@ -83,13 +129,28 @@ def evaluate_model(model, X_test, Y_test, category_names):
     accuracy_mask = (y_test_pred == Y_test)
     accuracy = accuracy_mask.mean()
     print("Accuracy:", round(accuracy,2))
+    
+    # print f1 score, precision and recall
+    for i in range(Y_test.shape[1]):
+        report = classification_report(Y_test[:,i], y_test_pred[:,i])
+        print(str(i+1)+'.', category_names[i]+" label\n", report)
 
 
 def save_model(model, model_filepath):
+    """ This function saves the trained model.
+
+    Args:
+        model (Pipeline): The classifier pipeline object
+        model_filepath (str): The filename for saving classifier.
+
+    """
     pickle.dump(model, open(model_filepath, 'wb'))
 
 
 def main():
+    """ The main module code.
+
+    """
     if len(sys.argv) == 3:
         database_filepath, model_filepath = sys.argv[1:]
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))

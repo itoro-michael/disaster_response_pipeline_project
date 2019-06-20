@@ -4,6 +4,18 @@ from sqlalchemy import create_engine
 
 
 def load_data(messages_filepath, categories_filepath):
+    """ This function loads the csv files provided by the function
+        arguments and returns them as dataframes.
+
+    Args:
+        messages_filepath (str): The filepath to csv file containing messages.
+        categories_filepath (str): The filepath to csv file containing message labels.
+
+    Returns:
+        DataFrame: containing messages.
+        DataFrame: containing labels.
+
+    """
     # load messages dataset
     messages = pd.read_csv(messages_filepath)
     
@@ -14,6 +26,17 @@ def load_data(messages_filepath, categories_filepath):
 
 
 def clean_data(messages, categories):
+    """ This function merges the received dataframes and cleans the resulting dataset to be 
+        training ready. It returns the cleaned dataset.
+
+    Args:
+        messages (DataFrame): The dataframe containing messages.
+        categories (DataFrame): The dataframe containing message labels.
+
+    Returns:
+        DataFrame: The cleaned dataset.
+
+    """
     # merge datasets
     df = messages.merge(categories, how='left', on=['id'])
     
@@ -51,18 +74,29 @@ def clean_data(messages, categories):
     col_list.remove('original')
     df.dropna(axis=0, subset=col_list, inplace=True)
     
-    # Delete unusual rows since small
-    df.drop(df[df.related == 2.].index, inplace=True)
+    # convert the df.related column to binary
+    df.related[df.related == 2.] = 1.0
     
     return df
 
 
 def save_data(df, database_filename):
+    clean_data(messages, categories):
+    """ This function saves the cleaned dataset.
+
+    Args:
+        df (DataFrame): The cleaned dataframe containing messages and labels.
+        database_filename (str): The database filename to save dataset.
+
+    """
     engine = create_engine('sqlite:///'+database_filename)
     df.to_sql('tbl_message', engine, index=False, if_exists='replace')
 
 
 def main():
+    """ The main program for module.
+
+    """
     if len(sys.argv) == 4:
 
         messages_filepath, categories_filepath, database_filepath = sys.argv[1:]

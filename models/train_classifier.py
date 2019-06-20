@@ -70,7 +70,7 @@ def build_model():
                 ([
                     ('vect', CountVectorizer(tokenizer=tokenize, max_features=5000)),
                     ('tfidf', TfidfTransformer()),
-                    ('clf', MultiOutputClassifier(RandomForestClassifier(random_state=0), n_jobs=-1))
+                    ('clf', MultiOutputClassifier(AdaBoostClassifier(random_state=0), n_jobs=-1))
                 ])
     return pipeline
 

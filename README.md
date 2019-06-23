@@ -11,7 +11,7 @@ This project is an emergency message classifier designed to group a message into
 Some of the categories are Request, Aid Related, Medical Help, Food, Shelter, and Clothing. The MultiOutputClassifier 
 and the AdaBoostClassifier from the sklearn package in Python are combined and trained to produce a multi-label 
 classification model. The model accuracy on test set is at 93%, with precision of 0.76, and 0.98 in recall. The data used 
-for training the model is provided by Figure8.
+for training the model is provided by Figure Eight Inc.
 
 ## Files in the project besides the README:
 

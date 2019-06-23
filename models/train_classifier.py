@@ -18,7 +18,6 @@ from sklearn.pipeline import Pipeline
 from sklearn.metrics import classification_report
 from numpy import unravel_index
 from sklearn.metrics import fbeta_score
-from sklearn.metrics import make_scorer
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import AdaBoostClassifier
 
@@ -104,10 +103,8 @@ def build_model():
     parameters =    {
                         'clf__estimator__n_estimators': [50, 60]
                     }
-    # Make an fbeta_score scoring object
-    scorer = make_scorer(fbeta_score, beta=1.0, average='macro')
 
-    cv = GridSearchCV(pipeline, param_grid=parameters, scoring=scorer)
+    cv = GridSearchCV(pipeline, param_grid=parameters)
 
     return cv
 

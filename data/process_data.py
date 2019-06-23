@@ -79,9 +79,7 @@ def clean_data(messages, categories):
     
     return df
 
-
 def save_data(df, database_filename):
-    clean_data(messages, categories):
     """ This function saves the cleaned dataset.
 
     Args:
